@@ -1,0 +1,6 @@
+# Export all names
+exportPattern(".")
+importFrom(sm, pause)
+importFrom("graphics", "abline", "lines", "par", "plot", "points",
+    "rect", "segments", "text")
+importFrom("stats", "as.hclust")

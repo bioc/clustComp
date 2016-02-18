@@ -1,0 +1,328 @@
+%\VignetteIndexEntry{The clustComp Package}
+%\VignettePackage{clustComp}
+
+\documentclass[a4paper, 12pt]{article}
+
+
+\newcommand\Rpackage[1]{{\textsf{#1}\index{#1 (package)}}}
+\newcommand\Rfunction[1]{{{\small\texttt{#1}}\index{#1 (function)}}}
+
+
+\setlength{\textwidth}{6.5in}
+\setlength{\topmargin}{-0.25in}
+\setlength{\textheight}{8.5in}
+\setlength{\oddsidemargin}{.0in}
+\setlength{\evensidemargin}{.0in}
+\setlength{\footskip}{.5in}
+
+
+\begin{document}
+
+\title{The \Rpackage{clustComp} package}
+\author{Alvis Brazma and Aurora Torrente}
+\maketitle
+
+
+
+
+
+\section{Introduction}
+
+This document presents an overview to the \Rpackage{clustComp} package, 
+which is a collection of tools developed for the comparison and the 
+visualisation of relationships between two clusterings, either flat versus
+flat or flat versus hierarchical. Both situations are addressed by 
+representing clusters as nodes in a weighted bipartite graph, where 
+each layer corresponds to one of the clusterings under comparison, 
+and the edge weights are given by the number of elements in the 
+intersection between any two (connected) clusters.\\[2mm]
+
+\noindent To illustrate the use of the package, we use the publicly available 
+dataset included in the experiment data package, \Rpackage{colonCA}, on 
+Bioconductor, which contains an exprSet instance for the Alon et al. (1999) 
+colon cancer data, including 40 tumour samples and 22 normal samples, 
+measured at 2000 probeset. We first install and load the experiment data 
+package, which requires the \Rpackage{Biobase} package:
+
+<<loadData>>=
+library(Biobase)
+library(colonCA)
+data(colonCA)
+@
+
+For visualisation purposes, we are going to rename some rownames of some 
+of the dataset, which are too long:
+
+<<renameLongNames>>=
+rownames(exprs(colonCA))[39:42] <- paste("HSAC07", 0:3)
+rownames(exprs(colonCA))[50:53] <- paste("UMGAP", 0:3)
+rownames(exprs(colonCA))[260:263] <- paste("i", 0:3)
+@
+
+\noindent Next, we load the \Rpackage{clustComp} package using:
+
+<<loadPackage>>=
+library(clustComp)
+@
+
+\noindent and build the clusterings to be compared. We arbitrarily choose 
+flat clusterings of seven and six clusters, respectively, and two hierarchical 
+trees built with the complete-linkage and the Ward methods, respectively:
+
+<<>>=
+set.seed(0)
+# seven flat clusters:
+flat1 <- paste("A", kmeans(exprs(colonCA), 7)$cluster, sep = "")   
+# six flat clusters:
+flat2 <- paste("B", kmeans(exprs(colonCA), 6)$cluster, sep = "")  
+# dendrograms with 2000 leaves:
+hierar <- hclust(dist(exprs(colonCA)))   
+hierar2 <- hclust(dist(exprs(colonCA)), method = 'ward.D')
+@
+
+\section{Comparison of two flat clusterings}
+
+
+The key algorithm for the comparison of clusterings is the \textbf{barycentre 
+algorithm}, which tries to minimise heuristically the number of edge 
+crossings in the bipartite graph, represented by default in a vertical 
+layout. The size of the nodes and the width of the edges can be adjusted
+by the user, with the arguments \verb|point.sz| and \verb|line.wd|; also a 
+minimum distance \verb|h.min| between consecutive nodes can be set 
+by the user to avoid overlapping.
+
+\noindent To compare two flat clusterings, use the function \Rfunction
+{flatVSflat}, which combines the barycentre algorithm with an additional 
+heuristic consisting in swapping consecutive nodes if that leads to a reduced 
+number of edge crossings. The following run of the function decreases the 
+number of edge crossings from the initial 228422 to the final 9604:
+
+<<comparisonFlatVsFlat1,fig=FALSE>>=
+flatVSflat(weights = table(flat1,flat2), line.wd = 5, h.min = 0.3)
+@
+<<fig01, results = hide, echo = FALSE, fig = FALSE>>=
+bitmap("fig01.png", height = 4, width = 4, pointsize = 10, res = 300)
+flatVSflat(table(flat1, flat2), line.wd = 5, h.min = 0.3)
+dev.off()
+@
+
+\vspace*{5mm}
+\begin{center}
+\fbox{\includegraphics[width=0.45\textwidth]{fig01}}
+\end{center}
+
+
+\noindent One can easily see that this layout is not the optimal one, but it 
+can be used to find it, by setting an appropriate initial ordering of the 
+nodes:
+
+
+
+<<comparisonFlatVsFlat1a,fig=FALSE,results=hide>>=
+flatVSflat(weights=table(flat1,flat2), coord1=c(6,3,4,7,5,1,2), 
+    coord2=c(5,1,4,6,3,2))
+@
+<<fig01a, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig01a.png",height=4,width=4,pointsize=10,res=300)
+flatVSflat(table(flat1,flat2),coord1=c(6,3,4,7,5,1,2), coord2=c(5,1,4,6,3,2))
+dev.off()
+@
+
+\vspace*{5mm}
+\begin{center}
+\fbox{\includegraphics[width=0.45\textwidth]{fig01a}}
+\end{center}
+
+
+\noindent The ordinates of each flat cluster are yielded by the barycentre 
+algorithm; these can be overridden to have evenly distributed nodes 
+(preserving the ordering); also a horizontal layout is allowed:
+
+
+<<comparisonFlatVsFlat2,fig=FALSE, results=hide>>=
+flatVSflat(weights=table(flat1,flat2), evenly=TRUE, horiz=TRUE)
+@
+<<fig02, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig02.png",height=4,width=4,pointsize=10,res=300)
+flatVSflat(table(flat1,flat2),evenly=TRUE,horiz=TRUE)
+dev.off()
+@
+
+\begin{center}
+\fbox{\includegraphics[width=0.45\textwidth]{fig02}}
+\end{center}
+\vspace*{1cm}
+
+\subsection{The greedy algorithm}
+
+
+The \textbf{greedy algorithm} constructs a one-to-one mapping between 
+groups of clusters from each partitioning. These new groups are named 
+superclusters; they correspond to the p connected components in the 
+subgraph found by considering only the thickest edge among those which are 
+incident with each node. Ties are not broken at random; instead, all edges 
+with maximum weight are taken into account for constructing the mapping.
+\\[2mm]
+
+\noindent The two sets of p superclusters are assigned new labels: 'S1',
+'S2',...,'Sp' for the first clustering, and 'T1', 'T2',...,'Tp' for the second
+one, as shown below:
+
+<<greedyAlgorithm, fig=FALSE>>=
+myMapping<-SCmapping(flat1, flat2)
+@
+<<fig03, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig03.png",height=4,width=4,pointsize=10,res=300)
+SCmapping(flat1,flat2)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.45\textwidth]{fig03}}
+\end{center}
+
+\noindent  The initial clusters that form each supercluster are also 
+indicated in the plot, in brackets. After merging them to form the 
+superclusters, all the edges are drawn in the bi-graph (otherwise, it 
+would contain only parallel edges).
+
+
+\section{Comparison of flat and hierarchical clusterings}
+
+To compare a hierarchical and a flat clusterings we compute cutoffs at 
+different heights of the dendrogram and collapse the resulting branches to 
+form flat clusters, that are compared to the non-hierarchical clustering with 
+the barycentre algorithm, and optionally, with the greedy algorithm.\\[1mm] 
+
+\noindent We explore the tree by depth-first search, starting at the root. Each 
+comparison can be sequentially plotted (the default), and then the code 
+needs the interaction of the user to continue, or alternatively, only the final 
+comparison, after all split decisions have been made, is shown. The criterium 
+used to decide whether we should divide a given branch is that splitting that 
+branch yields a better value of a certain scoring function (namely, 
+\verb|"it"|, a more stringent one, based on information theory, or 
+\verb|"crossing"|, based on the layout aesthetics). In other words, we 
+compute a certain score for the 'parent tree' (with the branch under 
+study still collapsed) and for the 'children tree' (with the branch replaced 
+by its descendants), and keep the best one. 
+Note that the number of descendants might be different from 2 if we are 
+using the look-ahead strategy.\\[1mm] 
+
+\noindent The plots, either intermediate or final, display the pruned tree 
+on the left, with branches evenly separated, and the flat clustering on the 
+right, with coordinates given by the barycentre algorithm. Each collapsed 
+branch is labelled with 'B' followed by a number in brackets. That 
+number follows the notation of dendrograms in R: if it is negative, it is a 
+leaf (therefore it cannot be split as it has no children); if it is positive, 
+it indicates the stage at which the given branch was agglomerated when 
+computing the tree (i.e. it has two children). The flat clusters on the right 
+are labelled with 'F' followed by their original label, in brackets. 
+Additionally, a box with as many divisions as branches/clusters indicates 
+the sizes of the corresponding groups.\\[1mm]
+
+\noindent The following pictures illustrate the use of the function \Rfunction
+{flatVShier} for the comparison of the hierarchical clustering of the colon 
+data, and the flat clustering with 7 clusters.
+
+\begin{itemize}
+\item \textit{Aesthetics-based scoring function, with no look ahead}: the 
+optimal set of cutoffs yields 19 branches; the greedy algorithm computes 7 
+superclusters, identified in the plot by different colours/symbols.
+<<aestheticsNoLookAhead,  fig=FALSE, results=hide>>=
+comparison.flatVShier.1<-flatVShier(hierar, flat1, verbose=FALSE, 
+    pausing=FALSE, score.function="crossing", greedy.colours=1:4, 
+    look.ahead=0)
+@
+<<fig04, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig04.png",height=6,width=8,pointsize=9,res=300)
+flatVShier(hierar,flat1,pausing=FALSE,verbose=FALSE, 
+    score.function="crossing",greedy.colours=1:4,look.ahead=0)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig04}}
+\end{center}
+
+A more descriptive version of previous figure can be achieved by setting the 
+parameter \verb|expanded| to TRUE; in that case, the full dendrogram is 
+represented:
+<<aestheticsNoLookAheadExpanded,  fig=FALSE, results=hide>>=
+comparison.flatVShier.1<-flatVShier(hierar, flat1, verbose=FALSE, 
+    pausing=FALSE, score.function="crossing", greedy.colours=1:4, 
+    look.ahead=0, expanded=TRUE)
+@
+<<fig05, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig05.png",height=14,width=8,pointsize=9,res=300)
+flatVShier(hierar,flat1,pausing=FALSE,verbose=FALSE, 
+    score.function="crossing",greedy.colours=1:4,look.ahead=0, 
+    expanded=TRUE)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig05}}
+\end{center}
+
+
+
+\item \textit{Information theoretical-based scoring function, looking one step 
+ahead}: the optimal set of cutoffs yields 7 branches; the greedy algorithm 
+computes 4 superclusters.
+<<itLookAhead1,  fig=FALSE, results=hide>>=
+comparison.flatVShier.2<-flatVShier(hierar, flat1, verbose=FALSE, 
+    pausing=FALSE, h.min=0.2, score.function="it", 
+    greedy.colours=1:4, look.ahead=1)
+@
+<<fig06, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig06.png",height=6,width=8,pointsize=9,res=300)
+flatVShier(hierar,flat1,pausing=FALSE,h.min=0.2,verbose=FALSE, 
+    score.function="it",greedy.colours=1:4,look.ahead=1)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig06}}
+\end{center}
+
+\item \textit{Information theoretical-based scoring function, looking two steps 
+ahead}: the optimal set of cutoffs yields 12 branches; the greedy algorithm 
+computes 5 superclusters.
+<<itLookAhead2,  fig=FALSE, results=hide>>=
+comparison.flatVShier.3<-flatVShier(hierar, flat1, verbose=FALSE, 
+    pausing=FALSE, h.min=0.2, score.function="it", 
+    greedy.colours=1:4, look.ahead=2)
+@
+<<fig07, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig07.png", height=6, width=8, pointsize=9, res=300)
+flatVShier(hierar, flat1, pausing=FALSE, verbose=FALSE, score.function="it",
+    greedy.colours=1:4, look.ahead=2,h.min=0.2)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig07}}
+\end{center}
+\end{itemize}
+
+
+\noindent The intermediate steps can be visualised by setting the argument 
+\verb|pausing| equal to TRUE (it requires the interaction of the user to show 
+all the iterations).\\[1mm]
+
+\noindent Also, an expanded version of the comparison can be achieved by 
+displaying the whole tree, which helps visualising the size of the clusters.
+
+<<itLookAhead2Expanded,  fig=FALSE, results=hide>>=
+comparison.flatVShier.4<-flatVShier(hierar2, flat1, verbose=FALSE, 
+    pausing=FALSE, h.min=0.2, score.function="it", 
+    greedy.colours=1:4, look.ahead=2, expanded=TRUE)
+@
+<<fig08, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig08.png", height=14, width=8, pointsize=9, res=300)
+flatVShier(hierar2, flat1, pausing=FALSE, verbose=FALSE, 
+    score.function="it", greedy.colours=1:4, look.ahead=2, 
+    h.min=0.2, expanded=TRUE)
+dev.off()
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig08}}
+\end{center}
+
+
+\end{document}
