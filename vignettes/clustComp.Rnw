@@ -319,6 +319,7 @@ flatVShier(hierar2, flat1, pausing=FALSE, verbose=FALSE,
     score.function="it", greedy.colours=1:4, look.ahead=2, 
     h.min=0.2, expanded=TRUE)
 dev.off()
+Sys.sleep(10)
 @
 \begin{center}
 \fbox{\includegraphics[width=0.65\textwidth]{fig08}}
