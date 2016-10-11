@@ -12,8 +12,8 @@ each cluster is also displayed. }
 \usage{
 drawTreeGraph(weight, current.order, coordinates, tree, dot = TRUE, 
     line.wd = 3, main = NULL, expanded = FALSE, hclust.obj = NULL, 
-    labels = NULL, cex.labels = 1) 
-}
+    labels = NULL, cex.labels = 1, expression = NULL, layout = NULL, 
+    ramp = NULL)}
 \arguments{
     \item{weight}{ a contingency matrix containing the intersection sizes 
 (edge weights) between branches in the tree and clusters from the flat 
@@ -45,6 +45,15 @@ the gravity-centre algorithm.}
 expanded tree.}
     \item{cex.labels}{ a number indicating the magnification used for the 
 labels of the leaves.}
+    \item{expression}{ a matrix containing the expression data from which
+the dendrogram and the flat partioning were obtained.}
+    \item{layout}{ a vector containing 3 or 2 components, depending on
+whether the heatmap is plotted or not. Each coordinate provides the value
+on the X axis for locating the heatmap, the colour bar representing pruned
+branches, and the bigraph. Provided vectors are increasingly ordered to 
+keep the layout of the plot.}
+    \item{ramp}{ a vector with two components containing the two colours
+used to define the palette for the heatmap.}
 }
 \details{ The \code{drawTreeGraph} allows visualising the comparison of a 
 hierarchical clustering, drawn on the left hand side of the plot, and a 
@@ -105,8 +114,15 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     coordinates <- list(c(0.25, 0.75), c(0.25, 0.75))
     tree <- list(heights = hierar.clustering$height[9], 
         branches = matrix(c(9, 6, 8), 1, 3))
+
+    # without heatmap
     drawTreeGraph(weight, current.order, coordinates, tree, 
         expanded = TRUE, hclust.obj = hierar.clustering, 
         dot = FALSE)
+
+    # with heatmap
+    drawTreeGraph(weight, current.order, coordinates, tree, 
+        expanded = TRUE, hclust.obj = hierar.clustering, 
+        dot = FALSE, expression = myData)
 }
 \keyword{ clustering comparison }

@@ -13,10 +13,11 @@ using the barycentre algorithm on the right hand side; also, the children
 corresponding to the last split in the dendrogram when exploring it by 
 depth-first search are swapped if this decreases the number of crossings.}
 \usage{
-flatVShier(tree, flat.clustering, flat.order = NULL, max.branches = 100, 
-    look.ahead = 2, pausing = TRUE, verbose = TRUE, h.min = 0.04, line.wd = 3, 
-    greedy = TRUE, greedy.colours = NULL, score.function = "crossing", 
-    expanded = FALSE, labels = NULL, cex.labels = 1, main = NULL) 
+flatVShier(tree, flat.clustering, flat.order = NULL, look.ahead = 2, 
+    score.function = "crossing", expanded = FALSE, expression = NULL, 
+    greedy = TRUE, layout = NULL, pausing = TRUE, verbose = TRUE, 
+    greedy.colours = NULL, h.min = 0.04, labels = NULL, max.branches = 100,
+    line.wd = 3, cex.labels = 1, main = NULL, ramp = NULL)
 }
 \arguments{
     \item{tree}{ an \code{hclust} object, or structure that can be converted 
@@ -25,38 +26,49 @@ to hclust object, corresponding to a data set of size N.}
 each of the N objects clustered.}
     \item{flat.order}{ an optional vector containing the initial ordering 
 for the flat clusters (from bottom upward).}
-    \item{max.branches}{ an integer stating the maximum number of branches 
-allowed in the dendogram.}
     \item{look.ahead}{ the number of steps allowed to look further after 
 finding a parent-node whose score is better that that of its children.}
-    \item{pausing}{ a Boolean argument; if TRUE, each step in the 
-comparison is plotted and followed by a pause.}
-    \item{verbose}{ a Boolean argument; if TRUE, the situation in each 
-iteration is described.}
-    \item{h.min}{ minimum separation between nodes in the flat layer; if 
-the barycentre algorithm sets two nodes to be less than this distance 
-apart, then the second node and the following ones are shifted (upwards).}
-    \item{line.wd}{  a numerical parameter that fixes the width of the 
-thickest edge(s); the rest are drawn proportionally to their weights; 3 by 
-default.} 
-    \item{greedy}{ a Boolean argument; if TRUE, the branches produced by 
-the optimal cutoffs are used to construct superclusters that will be mapped 
-to superclusters on the flat side with the greedy algorithm in 
-\code{SCmapping}.} 
-    \item{greedy.colours}{ an optional vector containing the colours for 
-each of the superclusters if the greedy algorithm is used; if the length of 
-this vector is smaller than that of the number of resulting superclusters 
-p, then it is recycled.}
     \item{score.function}{ a string specifying whether the decision to 
 split a given branch is based on the aesthetics ('crossing') or on the 
 information theory ('it').}
     \item{expanded}{ a Boolean parameter to state whether the hierarchical 
-tree is displayed complete or pruned.}
+tree is displayed complete or pruned. FALSE by default.}
+    \item{expression}{ a matrix containing the expression data from which
+the dendrogram and the flat partioning were obtained. If provided, and 
+argument \code{expanded} is set to TRUE, the heatmap of the data is 
+represented.} 
+    \item{greedy}{ a Boolean argument; if TRUE, the branches produced by 
+the optimal cutoffs are used to construct superclusters that will be mapped 
+to superclusters on the flat side with the greedy algorithm in 
+\code{SCmapping}.} 
+    \item{layout}{ a vector containing 3 or 2 components, depending on
+whether the heatmap is plotted or not. Each coordinate provides the value
+on the X axis for locating the heatmap, the colour bar representing pruned
+branches, and the bigraph. Provided vectors are increasingly ordered to 
+keep the layout of the plot. By default, the X values are 1, 3, (5).}
+    \item{pausing}{ a Boolean argument; if TRUE, each step in the 
+comparison is plotted and followed by a pause.}
+    \item{verbose}{ a Boolean argument; if TRUE, the situation in each 
+iteration is described.}
+    \item{greedy.colours}{ an optional vector containing the colours for 
+each of the superclusters if the greedy algorithm is used; if the length of 
+this vector is smaller than that of the number of resulting superclusters 
+p, then it is recycled.}
+    \item{h.min}{ minimum separation between nodes in the flat layer; if 
+the barycentre algorithm sets two nodes to be less than this distance 
+apart, then the second node and the following ones are shifted (upwards).}
     \item{labels}{ an optional vector containing labels for the leaves of 
 the tree.}
+    \item{max.branches}{ an integer stating the maximum number of branches 
+allowed in the dendogram.}
+    \item{line.wd}{  a numerical parameter that fixes the width of the 
+thickest edge(s); the rest are drawn proportionally to their weights; 3 by 
+default.} 
     \item{cex.labels}{ a number indicating the magnification for the labels 
 of the flat clusters and the branches in the hierarchical tree.}
     \item{main}{ an optional character string for the title of the plot.}
+    \item{ramp}{ a vector with two components containing the two colours
+used to define the palette for the heatmap.}
 }
 \value{
     a list of components including:
@@ -127,7 +139,11 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     collapsed2 <- flatVShier(tree, flat)
 
     ## expanded tree
+    # no heatmap
     expanded1 <- flatVShier(tree, flat, pausing = FALSE, score.function = "it",
         expanded = TRUE)
+    # with heatmap
+    expanded2 <- flatVShier(tree, flat, pausing = FALSE, score.function = "it",
+        expanded = TRUE, expression = dataset)    
 }
 \keyword{ clustering comparison }

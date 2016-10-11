@@ -1,8 +1,9 @@
 flatVShier <- function (tree, flat.clustering, flat.order = NULL,
-    max.branches = 100, look.ahead = 2, pausing = TRUE, verbose = TRUE,
-    h.min = 0.04, line.wd = 3, greedy = TRUE, greedy.colours = NULL,
-    score.function = "crossing", expanded = FALSE, labels = NULL,
-    cex.labels = 1, main = NULL) {
+    look.ahead = 2, score.function = "crossing", expanded = FALSE, 
+    expression = NULL, greedy = TRUE, layout = NULL, pausing = TRUE, 
+    verbose = TRUE, greedy.colours = NULL, h.min = 0.04, labels = NULL,
+    max.branches = 100, line.wd = 3, cex.labels = 1, main = NULL, 
+    ramp = NULL) {
         
         
     ##### INITIAL SETUP  ######
@@ -21,7 +22,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             stop("score.function must be a character string,
             equal to 'crossing' or 'it'...")
     }
-    
+
     no.genes <- length(flat.clustering)
     tree <- as.hclust(tree)
     tree.maxHeight <- max(tree$height)
@@ -79,7 +80,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
         ###########################
         ### build children.tree ###
         ###########################
-        
+
         m <- m + 1   ## one more node in the children.tree after split
         children.tree <- parent.tree
         queue.1 <- sub.branches[1]
@@ -100,7 +101,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             if (queue.2[1] < 0) {
                 children.tree[abs(queue.2[1])] <- sub.branches[2]
                 queue.2 <- queue.2[-1]
-            }  else {
+            } else {
                 row <- queue.2[1]
                 queue.2 <- insert(queue.2, 2, tree$merge[row,])
                 queue.2 <- queue.2[-1]
@@ -110,7 +111,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
         slot <- which(as.numeric(parent.order1) == split.branch)
 
         ## where to insert the new children in children.order1
-        
+
         # create orders
         children.order1 <- parent.order1
         children.order1 <- insert(children.order1, slot, 0)
@@ -154,7 +155,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
         #######################
         ### swap; flat side ###
         #######################
-        
+
         ## swap adjacent nodes in flat layer
         for (j in 1:(n - 1)){
             children.swapped.flat.order2 <- children.order2
@@ -194,9 +195,9 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
         #################################
         ### barycentre; flat side (2) ###
         #################################
-        
+
         children.coord2 <- apply(weight.2[children.swapped.tree.order1,], 2,
-            FUN=barycentre, coordinates = children.swapped.tree.coord1)
+            FUN = barycentre, coordinates = children.swapped.tree.coord1)
         children.order2 <- order(children.coord2)
         for (j in 1:(n - 1)) {
             if (children.coord2[children.order2][j + 1] -
@@ -230,7 +231,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             best.swapped.crossing <- before.crossing
             swapped.order2 <- best.order2
             swapped.coord2 <- best.coord2
-        } else  {
+        } else {
             best.swapped.crossing <- current.crossing
             swapped.order2 <- children.order2
             swapped.coord2 <- children.coord2
@@ -246,7 +247,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             j <- which(subtree %in% sub.branches)
             subtree[j] <- subtree[rev(j)]
             split[nrow(split), 2:3] <- split[nrow(split), 3:2]
-            
+
             ### reverse the original dendrogram for the expanded version
             tree$merge[split.branch,] <- rev(tree$merge[split.branch,])
             children.branches<-vector("list", 2)
@@ -257,7 +258,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                     children.branches[[cc]]<- (-v)
                 } else{
                     check <- tree$merge[v,]
-    
+
                     while (length(check) > 0){
                         if (check[1] < 0) {
                             children.branches[[cc]] <-
@@ -270,7 +271,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                     } # end WHILE
                 } # end ELSE
             } # end FOR
-            
+
             group1<-sort(which( tree$order %in% children.branches[[1]] ))
             group2<-sort(which( tree$order %in% children.branches[[2]] ))
             lim1 <- min(c(group1, group2))
@@ -294,7 +295,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             children.coord2 <- best.coord2
             children.order2 <- best.order2
         } # end ELSE
-            
+
 
         ################################################################
         ############          DRAW  THE  TREE       ####################
@@ -306,7 +307,8 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 coordinates = list(children.coord1, children.coord2),
                 dendrogram, line.wd = line.wd, main = paste("No.crossings = ",
                 best.crossing, ", No.Branches = ", m), expanded = expanded,
-                hclust.obj = tree, cex.labels = cex.labels, labels = labels)
+                hclust.obj = tree, cex.labels = cex.labels, labels = labels,
+                expression = expression, layout = layout, ramp = ramp)
         } # end IF pausing
 
         ####################################################################
@@ -321,7 +323,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             subtree.score <-score.crossing(weight.1, weight.2,
                 dyn.cross(weight.2[subtree.order.1, children.order2]))
         } else {subtree.score <- lapply(score.it(weight.1, weight.2), "-")}
-        
+
         if (looking.ahead) {score <- subtree.score$sc2 - finger.score.1}
         else {score <- subtree.score$sc2 - subtree.score$sc1}
 
@@ -344,7 +346,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             queue <- queue[-1]
             while (queue[1] < 0 & length(queue) > 0) {
                 queue <- queue[-1]
-            }  # remove leaves from the queue  
+            }  # remove leaves from the queue
     
             if (looking.ahead){
                 looking.ahead <- FALSE
@@ -362,7 +364,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 best.tree <- children.tree
                 best.order1 <- children.order1; best.order2 <- children.order2
                 best.coord1 <- children.coord1; best.coord2 <- children.coord2
-            }  else {  # no improvement
+            } else {  # no improvement
                 if (pausing){
                     # mark the finger when no improvement
                     x <- tree$height[finger]
@@ -399,20 +401,20 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                             tree$merge[sub.branches[1], ])
                         subtree <- subtree[-index]
                     } else {
-                        
+
                         if (all(sub.branches[1:2] < 0)){ # can't split branches
                         # even though the max number of steps ahead is not
                         # reached case B.2 = two leaves: undo the last split
-                        
+
                         # update the subtree
                         index <- which(subtree %in% sub.branches)
                         subtree[index[1]] <- split.branch
                         subtree <- subtree[-(index[2])]
-                        
+
                         # update the split/steps info
                         split <- as.matrix(rbind(c(), split[-nrow(split), ]))
                         steps <-steps[-length(steps)]
-                        
+
                         # update children
                         children.tree <- parent.tree
                         children.coord1 <- parent.coord1
@@ -430,16 +432,16 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                         if (length(index) > 0) {
                             A.sibbling <- A.sibbling[-index]
                         }
-                        
+
                         if (length(A.sibbling) > 0) {
                             index <- which(subtree == A.sibbling[1])
                             subtree <- insert(subtree, index + 1,
                                 tree$merge[as.numeric(A.sibbling[1]), ])
                             subtree <- subtree[-index]
                         } else {
-                            
+
                             continue <- TRUE
-                            
+
                             if (A == finger) {
                                 continue <- FALSE
                                 looking.ahead <- FALSE
@@ -454,10 +456,10 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                     names(finger.distance) <- finger
                                     subtree <- tree$merge[finger, ]
                                 } # end IF
-                                
+
                                 if (verbose){message("No more splits allowed")}
                             } # end IF reach finger back
-                            
+
                             while (continue){
                                 A.parent <-which (tree$merge == A,
                                     arr.ind = TRUE)[, 1]
@@ -500,7 +502,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                 index <- which(split[, 1] == A.parent)
                                 split <- as.matrix(rbind(c(), split[-index,]))
                                 steps <- steps[-index]
-                
+
                                 if (A == finger) {
                                     continue <- FALSE
                                     looking.ahead <- FALSE
@@ -514,15 +516,15 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                         names(finger.distance) <- finger
                                         subtree <- tree$merge[finger, ]
                                     } # end IF                        
-                                    
+
                                     if (verbose){message("No splits allowed.")}
                                 } # end IF reach finger back
                             } # end WHILE continue
                         } # end ELSE    
                     } # end IF case B.2
-                        
+
                     else { # case B.3 = one leaf, one branch
-                        
+
                         if ((sub.branches[1] < 0) & (sub.branches[2] > 0)){
                             # can't split the leaf: will be removed later from
                             # the queue; split the branch...
@@ -531,21 +533,20 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                 tree$merge[sub.branches[2], ])
                             subtree <- subtree[-index]
                         } # end IF case B.3
-                        
+
                         else{ # case B.4 = one branch, one leaf
                             index <- which(subtree == sub.branches[1])
                             subtree <- insert(subtree, index + 1,
                                 tree$merge[sub.branches[1], ])
                             subtree <- subtree[-index]
                         } # end ELSE case B.4
-                        
-                    } # end ELSE                 
+                    } # end ELSE
                 } # end ELSE 
-            
+
                 if (queue[1] == (no.genes - 1)) {
                     queue <- insert(queue, 2, tree$merge[step, ])}
                 else {queue <- insert(queue, 2, sub.branches)}  # end ELSE
-                
+
                 # update best
                 best.tree <- children.tree
                 best.order1 <- children.order1
@@ -553,9 +554,8 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 best.coord1 <- children.coord1
                 best.coord2 <- children.coord2
             }  ### end IF   case B
-                
+
             else {  ## no further exploring is permitted...
-                
                 if (verbose) {
                     message("Can't explore this descendant any further.")
                 } # end IF verbose
@@ -563,7 +563,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 ##############
                 ### CASE C ###
                 ##############
-                
+
                 ## similar to case B.2: we can't go further,
                 #thus we step back and keep on exploring until possible...
 
@@ -583,7 +583,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 children.order1 <- parent.order1
                 children.order2 <- parent.order2
                 m <- length(children.coord1)
-        
+
                 A <- queue[1]
 
                 A.generation <- finger.distance[as.character(A)]
@@ -592,21 +592,21 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                     queue[-1])]
                 index <- which(A.sibbling < 0)
                 if (length(index) > 0){A.sibbling <- A.sibbling[-index]}
-    
+
                 if (length(A.sibbling) > 0) { # there's a explorable sibbling
                     index <- which(subtree == A.sibbling[1])
                     subtree <- insert(subtree, index + 1,
                         tree$merge[as.numeric(A.sibbling[1]), ])
                     subtree <- subtree[-index]
                 } # end IF sibbling
-                
+
                 else { # there's no sibbling to explore
                     continue <- TRUE
                     if (A == finger) {
                         continue <- FALSE
                         looking.ahead <- FALSE
                         coord2.ifFinger <- list()
-                        
+
                         # update finger
                         index <- which(queue[-1] > 0) + 1
                         if (length(index) > 0) {
@@ -616,10 +616,10 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                             names(finger.distance) <- finger
                             subtree <- tree$merge[finger, ]
                         } # end IF
-                        
+
                         if (verbose) {message("No more splits allowed...")}
                     } # end IF reach finger back
-                    
+
                     while (continue){
                         A.parent <- which(tree$merge == A, arr.ind = TRUE)[, 1]
                         index <- which(subtree %in% tree$merge[A.parent, ])
@@ -643,7 +643,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                         } # end IF parent's sibbling
 
                         A <- A.parent
-                        
+
                         # back to the parent node
                         children.tree[children.tree %in%
                             tree$merge[A.parent, ]] <- A.parent
@@ -665,7 +665,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                             coord2.ifFinger <- list()
                             if (verbose) {
                                 message("No more splits are allowed.")}
-                            
+
                             # update finger
                             index <- which(queue[-1] > 0) + 1
                             if (length(index) > 0) {
@@ -675,11 +675,8 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                 names(finger.distance) <- finger
                                 subtree <- tree$merge[finger, ]
                             } # end IF
-                            
                         } # end IF reach finger back
-                        
                     } # end WHILE continue
-                    
                 } # end ELSE no sibbling
 
                 # update best
@@ -688,16 +685,16 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 best.order2 <- children.order2
                 best.coord1 <- children.coord1
                 best.coord2 <- children.coord2
-                
+
             } # end ELSE case C
 
             # update the queue for next loop
             queue <- queue[-1]
             while (queue[1] < 0 & length(queue) > 0) {queue <- queue[-1]}
                 ## can't split leaves; remove them from the queue
-            
+
         }  ### end ELSE   no improvement
-            
+
         ### final updates for next loop
         step <- queue[1]
         split.branch <- queue[1]
@@ -707,19 +704,24 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
         if (is.na(counter)){counter <- 0}
         if (pausing == TRUE) {pause()}
     } #### end WHILE 
-    
+
     ################  final plot   #################################
     best.dendrogram <- list(heights = tree$height[steps], branches = split)
     weight.2 <- table(best.tree, flat.clustering)
 
     if (length(main) == 0) {
-        main <- paste("Optimal cutoff - ", m, " branches", sep = "")
-    }
-    
+        if (m == 1) {
+            main <- paste("Optimal cutoff - ", m, " branch", sep = "")
+        }
+        else {main <- paste("Optimal cutoff - ", m, " branches", sep = "")}
+    }    
+
     final.coords <- drawTreeGraph(weight.2, list(best.order1, best.order2),
         coordinates = list(best.coord1, best.coord2), best.dendrogram,
         main = main, dot = FALSE, line.wd = line.wd, expanded = expanded,
-        hclust.obj = tree, cex.labels = cex.labels, labels = labels)
+        hclust.obj = tree, cex.labels = cex.labels, labels = labels,
+        expression = expression, layout = layout, ramp = ramp)
+
 
     ##################################################
     #################    GREEDY      #################
@@ -737,52 +739,52 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                 colours provided...")
         }
         else {
-            
+
             if ((N > L)){
                 greedy.colours <- rep(greedy.colours,ceiling(N/L))
             } #end IF
-        
+
             greedy.symbols <- c(rep(21, L), rep(22, L), rep(23, L), rep(24, L),
                 rep(25, L))[1 : N]
             for (p in 1:length(Greedy$merging1)){
-                
+
                 # label tree
                 i <- which(best.order1 %in% Greedy$merging1[[p]])
-                
+
                 if (expanded) {
                     y <- final.coords$b.coord[i]
-                    points(rep(final.coords$x.coords[1], length(y)), y,
-                        col = greedy.colours[p], cex = 3,
+                    points(rep( final.coords$x.coords[1], 
+                        length(y)), y, col = greedy.colours[p], cex = 3,
                         pch = greedy.symbols[p])
                 } # end IF
-                
+
                 else {
                     y <- best.coord1[i]
                     points(rep( final.coords$x.coords[1] ,length(y)), y,
                         col = greedy.colours[p], cex = 3,
                         pch = greedy.symbols[p])
                 } # end ELSE
-                                
+
                 # label flat
                 i <- which(colnames(weight.2) %in% Greedy$merging2[[p]])
                 if (expanded){
                     y <- final.coords$f.coord[i]
-                    points(rep(  final.coords$x.coords[2] ,length(y)), y,
-                        col = greedy.colours[p], cex = 3,
+                    points(rep( final.coords$x.coords[2] ,
+                        length(y)), y, col = greedy.colours[p], cex = 3,
                         pch = greedy.symbols[p])
                 } # end IF
-                
+
                 else {
                     y <- best.coord2[i]
                     points(rep(final.coords$x.coords[2], length(y)), y,
                         col = greedy.colours[p], cex = 3,
                         pch = greedy.symbols[p])
                 } # end ELSE
-                
+
             } # end FOR
-            
+
         } # end ELSE
-        
+
         return(list(tree.partition = best.tree,
             tree.s.clustering = Greedy$s.clustering1,
             flat.s.clustering = Greedy$s.clustering2,
@@ -790,8 +792,8 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             flat.merging = Greedy$merging2,
             dendrogram = tree))
     } # end IF
-    
+
     else{
         return(list(tree.partition = best.tree, dendrogram = tree))
     } # end ELSE
-} 
+}

@@ -54,9 +54,9 @@ For visualisation purposes, we are going to rename some rownames of some
 of the dataset, which are too long:
 
 <<renameLongNames>>=
-rownames(colonCA)[39:42] <- paste("HSAC07", 0:3)
-rownames(colonCA)[50:53] <- paste("UMGAP", 0:3)
-rownames(colonCA)[260:263] <- paste("i", 0:3)
+rownames(exprs(colonCA))[39:42] <- paste("HSAC07", 0:3)
+rownames(exprs(colonCA))[50:53] <- paste("UMGAP", 0:3)
+rownames(exprs(colonCA))[260:263] <- paste("i", 0:3)
 @
 
 \noindent Next, we load the \Rpackage{clustComp} package using:
@@ -324,6 +324,30 @@ Sys.sleep(10)
 \begin{center}
 \fbox{\includegraphics[width=0.65\textwidth]{fig08}}
 \end{center}
+
+\noindent In the expanded version, it is also possible to draw the heatmap, 
+by providing the expression data as an argument.
+
+<<itLookAhead2Heatmap,  fig=FALSE, results=hide>>=
+comparison.flatVShier.5<-flatVShier(hierar2, flat1, verbose=FALSE, 
+    pausing=FALSE, h.min=0.2, score.function="it", 
+    greedy.colours=1:4, look.ahead=2, expanded=TRUE,
+    expression=exprs(colonCA))
+@
+<<fig09, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig09.png", height=14, width=8, pointsize=9, res=300)
+flatVShier(hierar2, flat1, pausing=FALSE, verbose=FALSE, 
+    score.function="it", greedy.colours=1:4, look.ahead=2, 
+    h.min=0.2, expanded=TRUE, expression=exprs(colonCA))
+dev.off()
+Sys.sleep(10)
+@
+\begin{center}
+\fbox{\includegraphics[width=0.65\textwidth]{fig09}}
+\end{center}
+
+
+
 
 
 \end{document}
