@@ -5,7 +5,7 @@ Title: Clustering Comparison Package
 Author: Aurora Torrente and Alvis Brazma.
 Maintainer: Aurora Torrente <aurora@ebi.ac.uk>
 Depends: R (>= 3.3)
-Imports: sm, stats, graphics
+Imports: sm, stats, graphics, grDevices
 Suggests: Biobase, colonCA, RUnit, BiocGenerics
 biocViews: GeneExpression, Clustering, Visualization
 Description: clustComp is a package that implements several techniques
