@@ -5,3 +5,4 @@ importFrom("graphics", "abline", "image", "lines", "par", "plot", "points",
     "rect", "segments", "text")
 importFrom("stats", "as.hclust")
 importFrom("grDevices", "colorRampPalette")
+
