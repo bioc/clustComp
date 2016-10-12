@@ -1,13 +1,13 @@
 Changes in clustComp 1.2.0
 ==========================
 
-  * Added new arguments ‘expression’, ‘layout’ and ‘ramp’ 
+  o Added new arguments ‘expression’, ‘layout’ and ‘ramp’ 
 to flatVShier(), to provide more flexibility to the plot 
 layout.
 
 NEW FEATURE:
 
-  * The expanded version of the flatVShier() function allows 
+  o The expanded version of the flatVShier() function allows 
 adding the heatmap of the data, ordered according to the 
 resulting hierarchical tree.
 
@@ -15,4 +15,4 @@ resulting hierarchical tree.
 Changes in clustComp 1.0.0
 ==========================
 
-  * Release of the package.
+  o Release of the package.

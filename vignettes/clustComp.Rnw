@@ -54,9 +54,9 @@ For visualisation purposes, we are going to rename some rownames of some
 of the dataset, which are too long:
 
 <<renameLongNames>>=
-rownames(exprs(colonCA))[39:42] <- paste("HSAC07", 0:3)
-rownames(exprs(colonCA))[50:53] <- paste("UMGAP", 0:3)
-rownames(exprs(colonCA))[260:263] <- paste("i", 0:3)
+rownames(colonCA)[39:42] <- paste("HSAC07", 0:3)
+rownames(colonCA)[50:53] <- paste("UMGAP", 0:3)
+rownames(colonCA)[260:263] <- paste("i", 0:3)
 @
 
 \noindent Next, we load the \Rpackage{clustComp} package using:
