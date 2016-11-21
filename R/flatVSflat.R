@@ -82,8 +82,9 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                 if (new.crossings < current.crossings) {
                     current.crossings <- new.crossings
                     current.order1 <- new.order1
-                    current.coord1[i:(i + 1)] <-
-                        current.coord1[(i + 1):i]
+                    swapping <- c(names(current.coord1[ current.order1[i] ]),
+                        names(current.coord1[ current.order1[i + 1] ]) )
+                    current.coord1[swapping] <- current.coord1[rev(swapping)]
                     improved <- TRUE
                 } # end IF
             } # end FOR
@@ -123,7 +124,9 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                 if (new.crossings < current.crossings) {
                     current.crossings <- new.crossings
                     current.order2 <- new.order2
-                    current.coord2[j:(j + 1)] <- current.coord2[(j + 1):j]
+                    swapping <- c( names(current.coord2[ current.order2[j] ]), 
+                        names( current.coord2[ current.order2[j + 1] ]) )
+                    current.coord2[swapping] <- current.coord2[rev(swapping)]
                     improved <- TRUE
                 } # end IF
             } # end FOR
