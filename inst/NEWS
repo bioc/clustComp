@@ -12,6 +12,11 @@ adding the heatmap of the data, ordered according to the
 resulting hierarchical tree.
 
 
+BUG FIX
+
+  o Fix bug in plotting the flatVSflat comparison.
+
+
 Changes in clustComp 1.0.0
 ==========================
 
