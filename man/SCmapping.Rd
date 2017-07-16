@@ -3,7 +3,7 @@
 \title{ Construction of the superclusters and the one-to-one mapping 
 between them }
 \description{
-\code{SPmapping} identifies groups of clusters from two flat partitionings 
+\code{SCmapping} identifies groups of clusters from two flat partitionings 
 that have the largest common intersections. These groups are found by 
 following a greedy strategy: all edges incident to each cluster are removed 
 except for the one(s) with highest weight; then the connected components in 
@@ -61,7 +61,7 @@ graph.}
 intersections between the superclusters.}
 }
 \details{The one-to-one mapping between groups of clusters from two 
-different flat partitionings is computed with a greedy algorithm: firstly, 
+different flat partitionings is computed with the greedy algorithm: firstly, 
 for each node the edge with the highest weight is taken, and secondly, the 
 connected components in the edge-reduced bi-graph are found, so that each 
 connected component corresponds to a pair of superclusters with a large 
@@ -82,6 +82,7 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     # simulated data
     clustering1 <- c(rep(1, 5), rep(2, 10), rep(3, 10))
     clustering2 <- c(rep(1, 6), rep(2, 6), rep(3, 4), rep(4, 9))
-    mapping <- SCmapping(clustering1, clustering2)
+    mapping <- SCmapping(clustering1, clustering2, horiz = TRUE)
 }
 \keyword{ clustering comparison }
+

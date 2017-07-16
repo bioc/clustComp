@@ -1,9 +1,10 @@
-flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
-    h.min = 0.1, plotting = TRUE, horiz = FALSE, offset = 0.1, line.wd = 3,
-    point.sz = 2, evenly = FALSE, main = "", xlab = "", ylab = "",
-    col = NULL, ...){
+flatVSflat <- function(flat1, flat2, coord1 = NULL, coord2 = NULL, 
+    max.iter = 24, h.min = 0.1, plotting = TRUE, horiz = FALSE, 
+    offset = 0.1, line.wd = 3, point.sz = 2, evenly = FALSE, 
+    greedy = TRUE, greedy.colours = NULL, main = "", xlab = "", 
+    ylab = "", col = NULL, ...){
 
-    weigths <- as.matrix(weights)
+    weights <- as.matrix(table(flat1, flat2))
     m <- nrow(weights)
     n <- ncol(weights)
     if (length(rownames(weights)) == 0) {
@@ -70,7 +71,7 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
             current.coord1 <- new.coord1
             current.crossings <- new.crossings
         } # end IF improved
-    
+
         # swap consecutive nodes
         improved <- TRUE
         while (improved){
@@ -103,7 +104,7 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                     new.coord2[new.order2[(j + 1):n]] - h.min
             } # end IF
         } # end FOR j
-    
+
         ### compute the number of crossings; update if there is any improvement
         new.crossings <- dyn.cross(weights[current.order1, new.order2])
         improved <- (new.crossings < current.crossings)
@@ -112,7 +113,7 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
             current.coord2 <- new.coord2
             current.crossings <- new.crossings
         } # end IF
-        
+
         # swap consecutive nodes
         improved <- TRUE
         while (improved){
@@ -131,19 +132,19 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                 } # end IF
             } # end FOR
         } # end WHILE
-    
+
         it.counter <- it.counter + 1
         if (all(previous.order1 == current.order1) &
             all(previous.order2 == current.order2)) {continue <- FALSE}
         if (it.counter >= max.iter) {continue <- FALSE}
     } # end WHILE
-    
+
     if (plotting){
         if (evenly) {
             current.coord1 <- c(m:1)[order(current.order1)] - m / 2
             current.coord2 <- c(n:1)[order(current.order2)] - n / 2
         } # end IF evenly
-        
+
         pmax <- max(c(current.coord1, current.coord2))
         pmin <- min(c(current.coord1, current.coord2))
         s <- (pmax - pmin) / 10
@@ -166,9 +167,9 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
             for (i in 1:m){
                 order <- which(weights.sc[i, ] != 0)
                 segments(current.coord1[i], 0, current.coord2[order], 1,
-                    lwd = weights.sc[i, order])
+                    lwd = weights.sc[i, order], col = col)
             } # end FOR
-        
+
             # points
             points(x = current.coord1, y = rep(0, length(current.coord1)),
                 cex = point.sz, pch = 19, col = col)
@@ -180,6 +181,45 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                 col = col, ...)
             text(x = current.coord2, y = 1 + offset, labels = colnames(weights),
                 col = col, ...)
+
+            # greedy
+            if (greedy){
+                Greedy <- SCmapping(flat1, flat2, plotting = FALSE)
+                # number of superclusters
+                N <- length(unique(Greedy$s.clustering1)) 
+                # number of colours provided
+                L <- length(greedy.colours) 
+                if (L == 0) {greedy.colours <- 1:8; L <- 8}
+                if (N > L * 5){
+                    print("Too many superclusters to be distinctly shown using
+                        the colours provided...")
+                } # end IF
+                else {
+                    if ((N > L)){
+                        greedy.colours <- rep(greedy.colours,ceiling(N/L))
+                    } #end IF
+
+                    greedy.symbols <- c(rep(21, L), rep(22, L), 
+                        rep(23, L), rep(24, L), rep(25, L))[1 : N]
+                    for (p in 1:length(Greedy$merging1)){
+
+                        # label flat1
+                        i <- which(rownames(weights) %in% Greedy$merging1[[p]])                        
+                        points(x = current.coord1[i], 
+                            y = rep(0, length(current.coord1[i])),
+                            col = greedy.colours[p], cex = point.sz + 2, 
+                            pch = greedy.symbols[p])
+
+                        # label flat2
+                        i <- which(colnames(weights) %in% Greedy$merging2[[p]])
+                        y <- current.coord2[i]
+                        points(x = current.coord2[i], 
+                            y = rep(1, length(current.coord2[i])),
+                            col = greedy.colours[p], cex = point.sz + 2, 
+                            pch = greedy.symbols[p])
+                    }   #  end FOR p
+                } # end ELSE
+            } # end IF greedy 
         } else {
             plot(x = c(rep(0, m), rep(1, n)),
                 y = c(current.coord1, current.coord2),
@@ -192,7 +232,7 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
             for (i in 1:m){
                 index <- which(weights.sc[i, ] != 0)
                 segments(0, current.coord1[i], 1, current.coord2[index],
-                    lwd = weights.sc[i, index])
+                    lwd = weights.sc[i, index], col = col)
             } # end FOR
 
             # points
@@ -200,16 +240,66 @@ flatVSflat <- function(weights, coord1 = NULL, coord2 = NULL, max.iter = 24,
                 col = col)
             points(x = rep(1, n), y = current.coord2, cex = point.sz, pch = 19,
                 col = col)
-            
+
             # labels
             text(x = -offset, y = current.coord1, labels = rownames(weights),
                 col = col, ...)
             text(x = 1 + offset, y = current.coord2, labels = colnames(weights),
                 col = col, ...)
+
+            # greedy
+            if (greedy){
+                Greedy <- SCmapping(flat1, flat2, plotting = FALSE)
+                # number of superclusters
+                N <- length(unique(Greedy$s.clustering1)) 
+                # number of colours provided
+                L <- length(greedy.colours) 
+                if (L == 0) {greedy.colours <- 1:8; L <- 8}
+                if (N > L * 5){
+                    print("Too many superclusters to be distinctly shown using
+                        the colours provided...")
+                } # end IF
+                else {
+                    if ((N > L)){
+                        greedy.colours <- rep(greedy.colours,ceiling(N/L))
+                    } #end IF
+
+                    greedy.symbols <- c(rep(21, L), rep(22, L), 
+                        rep(23, L), rep(24, L), rep(25, L))[1 : N]
+                    for (p in 1:length(Greedy$merging1)){
+
+                        # label flat1
+                        i <- which(rownames(weights) %in% Greedy$merging1[[p]])                        
+                        points(x = rep(0, length(current.coord1[i])),
+                            y = current.coord1[i], 
+                            col = greedy.colours[p], cex = point.sz + 2, 
+                            pch = greedy.symbols[p])
+
+                        # label flat2
+                        i <- which(colnames(weights) %in% Greedy$merging2[[p]])
+                        y <- current.coord2[i]
+                        points(x = rep(1, length(current.coord2[i])),
+                            y = current.coord2[i],
+                            col = greedy.colours[p], cex = point.sz + 2, 
+                            pch = greedy.symbols[p])
+                    }   #  end FOR p
+
+                } # end ELSE
+            } # end IF greedy 
+
         } # end ELSE
-        
+
     } # end IF plotting
 
-    return(list(icross = initial.crossings, fcross = current.crossings,
-        coord1 = current.coord1, coord2 = current.coord2))
+    if (greedy) {
+        return(list(icross = initial.crossings, fcross = current.crossings,
+            coord1 = current.coord1, coord2 = current.coord2, 
+            s.clustering1 = Greedy$s.clustering1,
+            s.clustering2 = Greedy$s.clustering2,
+            merging1 = Greedy$merging1,
+            merging2 = Greedy$merging2))
+    } else {
+        return(list(icross = initial.crossings, fcross = current.crossings,
+            coord1 = current.coord1, coord2 = current.coord2))
+    }
 }

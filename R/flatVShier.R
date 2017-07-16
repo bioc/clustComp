@@ -3,9 +3,9 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
     expression = NULL, greedy = TRUE, layout = NULL, pausing = TRUE, 
     verbose = TRUE, greedy.colours = NULL, h.min = 0.04, labels = NULL,
     max.branches = 100, line.wd = 3, cex.labels = 1, main = NULL, 
-    ramp = NULL) {
-        
-        
+    ramp = NULL, bar1.col = NULL, bar2.col = NULL) {
+
+
     ##### INITIAL SETUP  ######
 
     flat.clustering <- as.vector(flat.clustering)
@@ -296,7 +296,6 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             children.order2 <- best.order2
         } # end ELSE
 
-
         ################################################################
         ############          DRAW  THE  TREE       ####################
         ################################################################
@@ -332,7 +331,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             ##############
             ### CASE A ###
             ##############
-    
+
             # update queue
             if (queue[1] == (no.genes - 1)) {
                 queue <- insert(queue, 2, tree$merge[step,])
@@ -347,7 +346,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             while (queue[1] < 0 & length(queue) > 0) {
                 queue <- queue[-1]
             }  # remove leaves from the queue
-    
+
             if (looking.ahead){
                 looking.ahead <- FALSE
                 if (verbose) {"This split improves the scoring of
@@ -393,7 +392,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                     ##############
                     ### CASE B ###
                     ##############
-                    
+
                     # case B.1 = two branches
                     if (all(sub.branches[1:2] > 0)){ # split branches normally
                         index <- which(subtree==sub.branches[1])
@@ -446,7 +445,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
                                 continue <- FALSE
                                 looking.ahead <- FALSE
                                 coord2.ifFinger <- list()
-                                
+
                                 # update finger
                                 index <- which(queue[-1] > 0) + 1
                                 if (length(index) > 0) {
@@ -719,9 +718,10 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
     final.coords <- drawTreeGraph(weight.2, list(best.order1, best.order2),
         coordinates = list(best.coord1, best.coord2), best.dendrogram,
         main = main, dot = FALSE, line.wd = line.wd, expanded = expanded,
-        hclust.obj = tree, cex.labels = cex.labels, labels = labels,
-        expression = expression, layout = layout, ramp = ramp)
-
+        hclust.obj = tree, flat.obj = flat.clustering,
+        cex.labels = cex.labels, labels = labels,
+        expression = expression, layout = layout, ramp = ramp,
+        bar1.col = bar1.col, bar2.col = bar2.col)
 
     ##################################################
     #################    GREEDY      #################
@@ -791,7 +791,7 @@ flatVShier <- function (tree, flat.clustering, flat.order = NULL,
             tree.merging = Greedy$merging1,
             flat.merging = Greedy$merging2,
             dendrogram = tree))
-    } # end IF
+    } # end IF greedy
 
     else{
         return(list(tree.partition = best.tree, dendrogram = tree))

@@ -32,7 +32,7 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
             if (any(zero.one[i, ones] == 1)){zero.one[i,ones] <- 1}
         } # end FOR i
     } # end FOR a.i
-        
+
     ## build superclustering 1
     superclustering1 <- clustering1
     superclustering2 <- clustering2
@@ -62,8 +62,9 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
     if (plotting) {
         if (length(node.col) == 0) {node.col <- 1}
         if (length(edge.col) == 0) {edge.col <- 1}
-        grav <- flatVSflat(super.weights, plotting = FALSE, h.min = h.min,
-            max.iter = max.iter)
+        grav <- flatVSflat(superclustering1, superclustering2, 
+            plotting = FALSE, h.min = h.min, max.iter = max.iter,
+            greedy = FALSE)
         if (evenly) {
             coord1 <- (k:1)[order(grav$coord1, decreasing = TRUE)];
             coord2 <- (k:1)[order(grav$coord2, decreasing = TRUE)]
@@ -86,19 +87,12 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
                 ylim = c(-3 * offset, 1 + 3 * offset), ...)
             myCex <- par("cex")
 
-            # edges
-            for (i in 1:k){
-                index <- which(super.weights.sc[i, ] != 0)
-                segments(coord1[i], 0, coord2[index], 1,
-                    lwd = super.weights.sc[i, index], col = edge.col[1])
-            } # end FOR i
-            
             # points
             points(x = coord1, y = rep(0, length(coord1)), cex = point.sz,
                 pch = 19, col = node.col)
             points(x = coord2, y = rep(1, length(coord2)), cex = point.sz,
                 pch = 19, col = node.col)
-                
+
             # supercluster labels
             text(x = coord1, y = -offset,
                 labels = rownames(super.weights), ...)
@@ -106,16 +100,29 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
                 labels = colnames(super.weights), ...)
             par(cex = myCex * 0.7)
 
-            # initial cluster labels
             for (sup in 1:k){
+                # edges
+                index <- which(super.weights.sc[sup, ] != 0)
+                segments(coord1[sup], 0, coord2[index], 1,
+                    lwd = super.weights.sc[sup, index], col = edge.col[1])
+
+                # initial cluster labels
                 text(x = coord1[sup], y = -2 * offset, labels =
                     paste( "(", paste(mapping1[[sup]], collapse = ","), ")",
                     sep = "" ), ...)
                 text(x = coord2[sup], y = 1 + 2 * offset, labels =
                     paste( "(", paste(mapping2[[sup]], collapse = ","), ")",
                     sep="" ), ...)
+
+                # sizes
+                text(x = coord1[sup], y = -3 * offset, 
+                    labels = paste( "size:", sum(super.weights[sup,]), 
+                    sep = " " ), ...)
+                text(x = coord2[sup], y = 1 + 3 * offset, 
+                    labels = paste( "size:", sum(super.weights[,sup]),
+                    sep=" " ), ...)
             } # end FOR sup
-            
+
             par(cex = myCex)
         } else {  ## vertical
             par(mar = c(2, 1, 2, 1) + 0.5)
@@ -123,22 +130,13 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
                 axes = FALSE, xlim = c(-3 * offset, 1 + 3 * offset),
                 ylim = c(pmin - s, pmax + s), ty = "n", ...)
             myCex <- par("cex")
-            
-            # edges
-            sc <- max(super.weights)
-            super.weights.sc <- super.weights * line.wd / sc
-            for (i in 1:k){
-                index <- which(super.weights.sc[i, ] != 0)
-                segments(0, coord1[i], 1, coord2[index],
-                    lwd = super.weights.sc[i, index], col = edge.col[1])
-            } # end FOR i
-            
+
             # points
             points(x = rep(0, length(coord1)), y = coord1, cex = point.sz,
                 pch = 19, col = node.col)
             points(x = rep(1, length(coord2)), y = coord2, cex = point.sz,
                 pch = 19, col = node.col)
-                
+
             # supercluster labels
             text(x = -offset, y = coord1, labels = rownames(super.weights),
                 ...)
@@ -146,16 +144,29 @@ SCmapping <- function(clustering1, clustering2, plotting = TRUE, h.min = 0.1,
                 ...)
             par(cex = myCex * 0.7)
 
-            ## initial cluster labels
             for (sup in 1:k){
+                # edges
+                index <- which(super.weights.sc[sup, ] != 0)
+                segments(0, coord1[sup], 1, coord2[index],
+                    lwd = super.weights.sc[sup, index], col = edge.col[1])
+
+                # initial cluster labels
                 text(x = -2 * offset, y = coord1[sup], labels = paste("(",
                     paste(mapping1[[sup]], collapse = ","), ")", sep = ""),
                     srt = 90, ...)
                 text(x = 1 + 2 * offset, y = coord2[sup], labels = paste("(",
                     paste(mapping2[[sup]], collapse = ","), ")", sep = ""),
                     srt = 90, ...)
-            }  # end FOR sup
-            
+
+                # sizes
+                text(x = -3 * offset, y = coord1[sup], 
+                    labels = paste( "size:", sum(super.weights[sup,]), 
+                    sep = " " ), ...)
+                text(x = 1 + 3 * offset, y = coord2[sup], 
+                    labels = paste( "size:", sum(super.weights[,sup]),
+                    sep=" " ), ...)
+            } # end FOR sup
+
             par(cex = myCex)
         } # end ELSE
     }  # end IF plotting

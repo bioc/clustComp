@@ -1,7 +1,8 @@
 drawTreeGraph <- function(weight, current.order, coordinates, tree,
         dot = TRUE, line.wd = 3, main = NULL, expanded = FALSE,
-        hclust.obj = NULL, labels = NULL, cex.labels = 1,
-        expression = NULL, layout = NULL, ramp = NULL) {
+        hclust.obj = NULL, flat.obj = NULL, labels = NULL, 
+        cex.labels = 1, expression = NULL, layout = NULL, 
+        ramp = NULL, bar1.col = NULL, bar2.col = NULL) {
 
     if (length(names(coordinates[[2]])) == 0) {
         names(coordinates[[2]]) <- colnames(weight)
@@ -9,6 +10,9 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
 
     heatmap <- (length(expression)>0)
     if (expanded == FALSE) {heatmap <- FALSE}
+    else {if (length(hclust.obj)==0) 
+        {stop('The full dendrogram must be provided to plot its expanded 
+            version...')}}
 
     # determine layout (x axis) values for plot
     if (heatmap) {
@@ -20,7 +24,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
         else {layout <- sort(layout[1:2])}
     }
     if (layout[1] <= 0) {stop("The layout values must be positive...")}
-    
+
     if (length(tree$heights) == 0) {
         message("No branch should be split...")
         nodes.2 <- length(current.order[[2]])
@@ -32,7 +36,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             Height <- Height/max.height
             Order <- hclust.obj$order
             N <- length(Order)
-        
+
             if (length(labels) > 0){
                 Labels <- labels
                 if (length(Labels) != length(Order)) {
@@ -44,19 +48,19 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                     Labels <- 1:N
                 }
             }
-            
+
             mySeq <- seq(min(coordinates[[2]]), max(coordinates[[2]]),
                 length.out = N)                
-            
+
             B <- layout[length(layout)]
             space <- B - layout[length(layout)-1]
             A <- B - space/2
-    
+
             plot( mySeq, ty = "n", axes = FALSE, ylab = '', xlab = '',
                 main = main, xlim = c(-max(Height), B + space),
                 ylim = c(min(mySeq), max(mySeq)) )
             myDots<-c()
-            
+
             for (i in 1:(N-1)){
                 if (all(Merge[i,] < 0)){
                     leaves <- which(Order %in% -(Merge[i,]))
@@ -99,18 +103,19 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                     } # end ELSE
                 } # end ELSE 
             } # end FOR
-            
+
             # write tree labels
             text(x = 0.1, y = mySeq, Labels[Order], adj = 0,
                 cex = cex.labels)
             sep <- (mySeq[2] - mySeq[1]) / 2
 
             ## draw rectangles representing collapsed branches
+            if (length(bar1.col)==0) {bar1.col <- 2}
             limits <- c(min(mySeq) - sep, max(mySeq) + sep )
             even.branch.coordinates <- (limits[2] + limits[1]) / 2
             rect(rep(layout[length(layout) - 1] + space/15, 2), limits[1], 
                 rep(layout[length(layout) - 1] + space/5, 2), 
-                limits[2], col = 2, border = NA)
+                limits[2], col = bar1.col[1], border = NA)
 
             ## draw heatmap            
             if (heatmap) {
@@ -137,14 +142,28 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             points(x = rep(B, nodes.2), y = coordinates[[2]], pch = 19)
 
             # size of flat clusters
+            if (length(bar2.col)==0) {bar2.col <- (1:nodes.2)}
             text(x = 0.2 + B, y = sort(coordinates[[2]]),
                 labels = paste("size:", weight[current.order[[2]]]),
-                cex = cex.labels * 0.9, adj = 0, col = 2)
+                cex = cex.labels * 0.9, adj = 0)
 
-            # labels
+           # labels
             text(x = rep(B + space/2, nodes.2), y = coordinates[[2]], 
-                labels = paste("F(", sort(current.order[[2]]), ")", sep = '' ), 
-                adj = 0, cex = cex.labels)
+                labels = paste("F(", colnames(weight)[sort(current.order[[2]])],
+                ")", sep = ''),
+                #labels = colnames(weight)[sort(current.order[[2]])], 
+                adj = 0, cex = cex.labels, col = bar2.col)
+
+            ## draw rectangles representing flat clusters
+            bar2.colours <- match(flat.obj, sort(unique(colnames(weight))))
+            rect(rep( B + space, 
+                nodes.2 + 1), 
+                c(min(mySeq-sep),sep + mySeq[1:N-1]), 
+                rep(B + 5*space/3, 
+                nodes.2 + 1), 
+                sep+mySeq, 
+                col = (bar2.col[bar2.colours])[Order],
+                border = NA)
 
             # draw edges
             sc <- max(weight); weight.sc <- weight * line.wd / sc
@@ -175,7 +194,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             sc <- max(weight); weight.sc <- weight * line.wd / sc
             segments( rep(A, length(coordinates[[2]])), 0.5, 
                 B, coordinates[[2]], lwd = weight.sc)
-                
+
             # label flat clusters
             text(B + space/2,
                 sort(coordinates[[2]]), labels = paste("F(",
@@ -191,7 +210,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                 labels = paste("size:", weight[current.order[[2]]]),
                 cex = cex.labels * 0.9, adj = 0)
         } # end ELSE
-        
+
     } else{   ###################     MORE THAN ONE BRANCH
         tree.maxHeight <- max(tree$height)
         tree.heights <- tree$heights/tree.maxHeight
@@ -270,7 +289,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                     } # end ELSE
                 } # end ELSE 
             } # end FOR
-            
+
             # write tree labels
             text(x = 0.1, y = mySeq, Labels[Order], adj = 0,
                 cex = cex.labels)
@@ -304,9 +323,9 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                 limits <- c( limits, sep +
                     mySeq[max(which(Order %in% clusters[[cc]]))] )
             } # end FOR
-            
+
             ## draw heatmap
-            
+
             if (heatmap) {
                 no.genes <- ncol(expression)
                 no.samples <- nrow(expression)
@@ -324,25 +343,27 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                 }
 
             ## draw rectangles representing collapsed branches
+            if (length(bar1.col)==0) {bar1.col <- 1:nodes.1}
             limits <- sort(limits)
             even.branch.coordinates <- (limits[2:(nodes.1 + 1)] +
                 limits[1:nodes.1]) / 2
             rect(rep(layout[length(layout) - 1] + space/15, nodes.1 + 1), 
                 limits[1:nodes.1], rep(layout[length(layout)-1] + space/5, 
-                nodes.1 + 1), limits[2:(nodes.1 + 1)], col = 1:nodes.1, 
+                nodes.1 + 1), limits[2:(nodes.1 + 1)], col = bar1.col, 
                 border = NA)
-                
+
             # draw collapsed branches
             points(x = rep(A, nodes.1),
                 y = even.branch.coordinates, pch = 19)
-                
+
             # draw flat nodes
             even.flat.coordinates <- (min(mySeq) + h.flat *
                 seq(1, nodes.2 * 2, by = 2))[order(current.order[[2]])]
             points(x = rep(B, nodes.2),
                 y = even.flat.coordinates, pch = 19)
-            
+
             # write size box2
+            if (length(bar2.col)==0) {bar2.col <- (1:nodes.2)}
             text(x = 0.2 + B, 
                 y = sort(even.flat.coordinates),
                 labels = paste("size:", apply(weight[, current.order[[2]]],
@@ -350,15 +371,29 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
 
             # labels
             text(x = rep(B + space/2, 
-                nodes.2), y = even.flat.coordinates, labels = paste("F(",
-                sort(current.order[[2]]), ")", sep = ''), adj = 0,
-                cex = cex.labels, col = 2)
-                
+                nodes.2), y = even.flat.coordinates, 
+                labels = paste("F(", colnames(weight)[sort(current.order[[2]])],
+                ")", sep = ''), 
+                #labels = colnames(weight)[sort(current.order[[2]])],
+                adj = 0,
+                cex = cex.labels, col = bar2.col)
+
+            ## draw rectangles representing flat clusters
+            bar2.colours <- match(flat.obj, sort(unique(colnames(weight))))
+            rect(rep( B + space, 
+                nodes.2 + 1), 
+                c(min(mySeq-sep),sep + mySeq[1:N-1]), 
+                rep(B + 5*space/3, 
+                nodes.2 + 1), 
+                sep+mySeq, 
+                col = (bar2.col[bar2.colours])[Order],
+                border = NA)
+
             # draw edges
             sc <- max(weight)
             weight.sc <- weight * line.wd / sc
 
-            for (i in 1:nodes.1){
+           for (i in 1:nodes.1){
                 index <- which(weight.sc[current.order[[1]][i], ] != 0)
                 segments(A, even.branch.coordinates[i],
                     B, even.flat.coordinates[index],
@@ -369,12 +404,12 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                 points(x = -Height[bb], y = mean(myDots[bb,]),
                 col = 3, cex = 1.1)
             } # end IF
-            
+
         } else{    ############ collapsed tree
             B <- layout[length(layout)] 
             space <- B - layout[length(layout)-1]
             A <- B - space/2            
-                
+
             # plot the branches
             plot(rep(A, nodes.1), coordinates[[1]],
                 xaxt = "n", yaxt = "n", xlab = "", ylab = "",
@@ -386,27 +421,27 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             # plot the flat clusters
             points(rep(B, nodes.2), coordinates[[2]], pch = 19)
 
-            # branch labels
+           # branch labels
             text(0.1, sort(coordinates[[1]]), labels = paste( "B(",
                 current.order[[1]], ")", sep = ""), cex = cex.labels,
                 col = 2, adj = 0)
-                
+
             # label flat clusters
             text(B + space/2,
                 sort(coordinates[[2]]), labels = paste( "F(",
                 names(coordinates[[2]])[order(coordinates[[2]])], ")",
                 sep = ""), cex = cex.labels, col = 2, adj = 0)
-                
+
             # write size box1
             text(A - 0.2, sort(coordinates[[1]]),
             labels = paste("size:", apply(weight[current.order[[1]], ], 1,
                 sum)), cex = cex.labels * 0.9, adj = 1)
-                
+
             # write size box2
             text(B + 0.2, sort(coordinates[[2]]),
                 labels = paste("size:", apply(weight[, current.order[[2]]],
                 2, sum)), cex = cex.labels * 0.9, adj = 0)
-                
+
             # draw edges
             sc <- max(weight); weight.sc <- weight * line.wd / sc
             for (i in 1:nodes.1){
@@ -438,7 +473,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
                 index <- which(tree.coordinates[, 1] == tree.branch[step,3],
                     arr.ind = TRUE)[1]
                 tree.coordinates <- rbind(c(), tree.coordinates[-index, ])
-                
+
                 # label the branch that has been split with a green dot
                 if (dot) {
                     index <- which(tree.coordinates[, 1] == new.split)
@@ -450,7 +485,7 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             } # end FOR step
         } # end ELSE
     } # end ELSE
-    
+
     if (expanded) {
         return(list(b.coord = even.branch.coordinates,
             f.coord = even.flat.coordinates,
@@ -461,3 +496,4 @@ drawTreeGraph <- function(weight, current.order, coordinates, tree,
             x.coords = c(A, B)))
     } # end ELSE
 }
+

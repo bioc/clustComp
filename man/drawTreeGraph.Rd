@@ -7,13 +7,13 @@ flat clusters }
 pruned, and a flat clustering, connected with edges whose thickness is 
 proportional to the number of elements shared by branches and clusters, to 
 form a weighted bi-graph. Its usage is mainly internal, as part of the 
-visualisation of the \code{hierarchical.look.ahead} function. The size of 
-each cluster is also displayed. }
+visualisation of the \code{flatVShier} function. The size of each cluster 
+is also displayed. }
 \usage{
 drawTreeGraph(weight, current.order, coordinates, tree, dot = TRUE, 
     line.wd = 3, main = NULL, expanded = FALSE, hclust.obj = NULL, 
-    labels = NULL, cex.labels = 1, expression = NULL, layout = NULL, 
-    ramp = NULL)}
+    flat.obj = NULL, labels = NULL, cex.labels = 1, expression = NULL, 
+    layout = NULL, ramp = NULL, bar1.col = NULL, bar2.col = NULL)}
 \arguments{
     \item{weight}{ a contingency matrix containing the intersection sizes 
 (edge weights) between branches in the tree and clusters from the flat 
@@ -32,7 +32,7 @@ agglomerated, and \code{$branches}, a matrix of 3 columns; the i-th row
 contains as first element the branch split at the i-th allowed splitting, 
 and as second and third elements, the corresponding children.}
     \item{dot}{ a Boolean parameter; if TRUE then the last split in the 
-children-tree is shown with a red open circle.}
+children-tree is shown with a green open circle.}
     \item{line.wd}{ a number indicating the width of the thickest edge(s) in 
 the bigraph.}
     \item{main}{ a character string for the plot title.}
@@ -41,6 +41,8 @@ tree should be plotted complete or with its branches collapsed.}
     \item{hclust.obj}{ an hclust object describing the how the leaves are 
 merged and the ordering of the branches, which might have been changed by 
 the gravity-centre algorithm.}
+    \item{flat.obj}{ a vector indicating the flat cluster each gene belongs 
+to.}
     \item{labels}{ a vector indicating the labels for the leaves in the 
 expanded tree.}
     \item{cex.labels}{ a number indicating the magnification used for the 
@@ -54,6 +56,12 @@ branches, and the bigraph. Provided vectors are increasingly ordered to
 keep the layout of the plot.}
     \item{ramp}{ a vector with two components containing the two colours
 used to define the palette for the heatmap.}
+    \item{bar1.col}{ a vector of integers or character strings indicating 
+the colours to be used in the hierarchical coloured bar, drawn on the left
+hand side.}
+    \item{bar2.col}{ a vector of integers or character strings indicating 
+the colours to be used in the flat coloured bar, drawn on the right hand
+side.}
 }
 \details{ The \code{drawTreeGraph} allows visualising the comparison of a 
 hierarchical clustering, drawn on the left hand side of the plot, and a 
@@ -63,11 +71,18 @@ the function is called as part of the \code{flatVShier} algorithm, then the
 standard notation for initial branch labels is that of \code{hclust} 
 objects: if the label is a negative integer it corresponds to a leaf; if it 
 is a positive integer, then it corresponds to a branch that agglomerates at 
-least two elements, and the number represent the stage at which the branch 
+least two elements, and the number represents the stage at which the branch 
 was formed.
-The last splitting can be optionally highlighted with a red open circle 
+The last splitting can be optionally highlighted with a green open circle 
 upon the parent-node.
 The flat clusters are labelled by their original labels preceded by 'F'.
+If the dendrogram is fully expanded, the corresponding hclust object 
+\code{hclust.obj} must be provided. Then, branches to be collapsed are 
+marked with a red solid dot and a coloured bar shows branch sizes. If the
+gene expression matrix is provided as argument \code{expression}, a heatmap 
+for the expression levels can be optionally added, using the colours defined 
+in \code{ramp}. If the flat clustering is given as parameter \code{flat.obj} 
+a second coloured bars shows how genes are distributed across flat clusters.
 }
 \value{
 a list of components including:
@@ -99,7 +114,7 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     weight <- table(children.clustering, flat.clustering)
     current.order <- list(c(3, 4, 1), 1:4)
     coordinates <- list(c(-1, 0, 1), c(-1.5, -0.5, 0.5, 1.5))
-    tree<-list(heights = c(1, 0.8), branches = split)
+    tree <- list(heights = c(1, 0.8), branches = split)
     drawTreeGraph(weight, current.order, coordinates, tree)
 
     ### expanded tree
@@ -123,6 +138,8 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     # with heatmap
     drawTreeGraph(weight, current.order, coordinates, tree, 
         expanded = TRUE, hclust.obj = hierar.clustering, 
-        dot = FALSE, expression = myData)
+        flat.obj = flat.clustering, expression = myData,
+        dot = FALSE)
 }
 \keyword{ clustering comparison }
+

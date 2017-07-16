@@ -17,7 +17,8 @@ flatVShier(tree, flat.clustering, flat.order = NULL, look.ahead = 2,
     score.function = "crossing", expanded = FALSE, expression = NULL, 
     greedy = TRUE, layout = NULL, pausing = TRUE, verbose = TRUE, 
     greedy.colours = NULL, h.min = 0.04, labels = NULL, max.branches = 100,
-    line.wd = 3, cex.labels = 1, main = NULL, ramp = NULL)
+    line.wd = 3, cex.labels = 1, main = NULL, ramp = NULL, bar1.col = NULL, 
+    bar2.col = NULL)
 }
 \arguments{
     \item{tree}{ an \code{hclust} object, or structure that can be converted 
@@ -25,7 +26,7 @@ to hclust object, corresponding to a data set of size N.}
     \item{flat.clustering}{ a vector of length N containing the labels for 
 each of the N objects clustered.}
     \item{flat.order}{ an optional vector containing the initial ordering 
-for the flat clusters (from bottom upward).}
+for the flat clusters (from bottom upwards).}
     \item{look.ahead}{ the number of steps allowed to look further after 
 finding a parent-node whose score is better that that of its children.}
     \item{score.function}{ a string specifying whether the decision to 
@@ -69,6 +70,12 @@ of the flat clusters and the branches in the hierarchical tree.}
     \item{main}{ an optional character string for the title of the plot.}
     \item{ramp}{ a vector with two components containing the two colours
 used to define the palette for the heatmap.}
+    \item{bar1.col}{ a vector of integers or character strings indicating 
+the colours to be used in the hierarchical coloured bar, drawn on the left
+hand side, if the dendrogram is fully expanded.}
+    \item{bar2.col}{ a vector of integers or character strings indicating 
+the colours to be used in the flat coloured bar, drawn on the right hand
+side, if the dendrogram is fully expanded.}
 }
 \value{
     a list of components including:
@@ -141,9 +148,12 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
     ## expanded tree
     # no heatmap
     expanded1 <- flatVShier(tree, flat, pausing = FALSE, score.function = "it",
-        expanded = TRUE)
+        expanded = TRUE, bar1.col = c("red", "blue", "cyan", "magenta"),
+        bar2.col = c("gray", "yellow", "orange", "purple"))
     # with heatmap
     expanded2 <- flatVShier(tree, flat, pausing = FALSE, score.function = "it",
-        expanded = TRUE, expression = dataset)    
+        expanded = TRUE, expression = dataset,
+        bar1.col = c("red", "blue", "cyan", "magenta"),
+        bar2.col = c("gray", "yellow", "orange", "purple"))    
 }
 \keyword{ clustering comparison }

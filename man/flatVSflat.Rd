@@ -9,14 +9,16 @@ are reflected in the edge thickness. The number of edge crossings is
 minimised heuristically using the barycentre algorithm alternatively on 
 each side.}
 \usage{
-flatVSflat(weights, coord1 = NULL, coord2 = NULL, max.iter = 24, h.min = 0.1, 
-    plotting = TRUE, horiz = FALSE, offset = 0.1, line.wd = 3, point.sz = 2, 
-    evenly = FALSE, main = "", xlab = "", ylab = "", col = NULL, ...)
+flatVSflat(flat1, flat2, coord1 = NULL, coord2 = NULL, max.iter = 24, 
+    h.min = 0.1, plotting = TRUE, horiz = FALSE, offset = 0.1, line.wd = 3, 
+    point.sz = 2, evenly = FALSE, greedy = TRUE, greedy.colours = NULL, 
+    main = "", xlab = "", ylab = "", col = NULL, ...)
 }
 \arguments{
-    \item{weights}{ a matrix containing the weights of the edges in the 
-bigraph, which represent the overlaps between clusters in the two 
-partitions.} 
+    \item{flat1}{ a vector of length N containing the labels for each of the 
+N genes clustered according to the first flat method.} 
+    \item{flat2}{ a vector of length N containing the labels for each of the 
+N genes clustered according to the second flat method.} 
     \item{coord1}{ a vector indicating the coordinates of the nodes in the 
 first layer of the bi-graph. If not provided, then the nodes are initially 
 equally spaced.}
@@ -41,10 +43,17 @@ the bigraph; 2 by default.}
     \item{evenly}{ a Boolean parameter; if TRUE the coordinate values are 
 ignored, and the nodes are drawn evenly spaced, according to the ordering 
 obtained by the algorithm. It is set to FALSE by default.}
+    \item{greedy}{ a Boolean argument; if set to TRUE the greedy algorithm is
+used to construct a one-to-one mapping between superclusters on both sides.}
+    \item{greedy.colours}{ a vector of integers or character strings defining 
+the colours that will be used to visualise the superclusters. If not provided 
+colours are selected from the default palette of size 8. If the length of 
+this vector is smaller than that of the number of resulting superclusters 
+p, then it is recycled, and different symbols are used.}
     \item{main}{ graphical parameter as in \code{plot}.}
     \item{xlab}{ graphical parameter as in \code{plot}.}
-    \item{ylab}{ graphical parameters as in \code{plot}.}
-    \item{col}{ graphical parameters as in \code{plot}.}
+    \item{ylab}{ graphical parameter as in \code{plot}.}
+    \item{col}{ graphical parameter as in \code{plot}.}
     \item{...}{ further graphical parameters.}
 }
 \value{
@@ -57,6 +66,18 @@ algorithm.}
 first layer.}
     \item{coord2}{ a vector containing the coordinates for each node in the 
 second layer.}
+    \item{s.clustering1}{ a vector of length N stating the supercluster 
+in the first layer each element belongs to. If greedy=FALSE this component is 
+not returned.}
+    \item{s.clustering2}{ a vector of length N stating the supercluster 
+in the second layer each element belongs to. If greedy=FALSE this component 
+is not returned.}
+    \item{merging1}{ a list of p components; the j-th element contains the 
+labels from the first clustering that have been merged to produce the j-th 
+supercluster. If greedy=FALSE this component is not returned.}
+    \item{merging2}{ a list of p components; the j-th element contains the 
+labels from the second clustering that have been merged to produce the j-th 
+supercluster. If greedy=FALSE this component is not returned.}
 }
 \details{ 
 As the iterations of the algorithm run the coordinates of the nodes in a 
@@ -99,10 +120,23 @@ data clusterings. \emph{Bioinformatics}, 21 (21), 3993-3999.
 }
 \seealso{flatVShier, barycentre}
 \examples{
-    # simulated data
+    ### simulated data; two superclusters
+    clustering1 <- c(rep(1, 5), rep(2, 10), rep(3, 10))
+    clustering2 <- c(rep(1, 4), rep(2,15), rep(1, 6))
+    # two colours
+    flatVSflat(clustering1, clustering2, greedy.colours = c("red","blue"))
+    # one colour, two symbols
+    flatVSflat(clustering1, clustering2, greedy.colours = c("red"))
+    # optimal bi-graph without greedy algorithm
+    flatVSflat(clustering1, clustering2, greedy = FALSE)
+
+
+    # simulated data; only one supercluster
     clustering1 <- c(rep(1, 5), rep(2, 10), rep(3, 10))
     clustering2 <- c(rep(1:4, 5), rep(1, 5))
-    weights <- table(clustering1, clustering2)
-    flatVSflat(table(clustering1, clustering2))
+    flatVSflat(clustering1, clustering2, greedy.colours = c("red"))
+
+    
 }
 \keyword{ clustering comparison }
+

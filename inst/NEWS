@@ -1,3 +1,34 @@
+Changes in clustComp 1.5.1
+==========================
+
+  o A new feature is added to flatVShier(); if the expanded 
+version of the dendrogram is plotted, a coloured bar on the
+right hand side displays how genes are distributed across
+the flat clusters.
+
+  o New arguments ‘bar1.col’ and ‘bar2.col’ in flatVShier()
+allow tuning the coloured bars when the expanded dendrogram 
+is plotted.
+
+  o Argument ‘weights’ in flatVSflat() is replaced by 
+‘flat1’ and ‘flat2’ for analogy with flatVShier().
+
+  o New argument ‘greedy’ in flatVSflat() allows displaying
+the one-to-one mapping between superclusters as in 
+flatVShier() after finding the best layout for the bi-graph.
+
+  o New argument ‘greedy.colours’ allows setting up the 
+visualisation of the mapping between superclusters, as in
+flatVShier().
+
+  o The visualisation of superclusters in SCmapping() 
+includes new labels with their sizes.
+
+  o Internal function drawTreeGraph() includes new arguments
+‘flat.obj’, ‘bar1.col’ and ‘bar2.col’ to display the second
+coloured bar and control the colours.
+
+
 Changes in clustComp 1.2.0
 ==========================
 
