@@ -54,9 +54,9 @@ For visualisation purposes, we are going to rename some rownames of some
 of the dataset, which are too long:
 
 <<renameLongNames>>=
-featureNames(colonCA)[39:42] <- paste("HSAC07", 0:3)
-featureNames(colonCA)[50:53] <- paste("UMGAP", 0:3)
-featureNames(colonCA)[260:263] <- paste("i", 0:3)
+rownames(colonCA)[39:42] <- paste("HSAC07", 0:3)
+rownames(colonCA)[50:53] <- paste("UMGAP", 0:3)
+rownames(colonCA)[260:263] <- paste("i", 0:3)
 @
 
 \noindent Next, we load the \Rpackage{clustComp} package using:
@@ -98,11 +98,11 @@ number of edge crossings. The following run of the function decreases the
 number of edge crossings from the initial 228422 to the final 9604:
 
 <<comparisonFlatVsFlat1,fig=FALSE>>=
-flatVSflat(weights = table(flat1,flat2), line.wd = 5, h.min = 0.3)
+flatVSflat( flat1, flat2, line.wd = 5, h.min = 0.3, greedy = FALSE)
 @
 <<fig01, results = hide, echo = FALSE, fig = FALSE>>=
 bitmap("fig01.png", height = 4, width = 4, pointsize = 10, res = 300)
-flatVSflat(table(flat1, flat2), line.wd = 5, h.min = 0.3)
+flatVSflat(flat1, flat2, line.wd = 5, h.min = 0.3, greedy = FALSE)
 dev.off()
 @
 
@@ -119,12 +119,13 @@ nodes:
 
 
 <<comparisonFlatVsFlat1a,fig=FALSE,results=hide>>=
-flatVSflat(weights=table(flat1,flat2), coord1=c(6,3,4,7,5,1,2), 
-    coord2=c(5,1,4,6,3,2))
+flatVSflat(flat1, flat2, coord1=c(6,3,4,7,5,1,2), 
+    coord2=c(5,1,4,6,3,2), greedy = FALSE)
 @
 <<fig01a, results=hide, echo=FALSE, fig=FALSE>>=
 bitmap("fig01a.png",height=4,width=4,pointsize=10,res=300)
-flatVSflat(table(flat1,flat2),coord1=c(6,3,4,7,5,1,2), coord2=c(5,1,4,6,3,2))
+flatVSflat(flat1, flat2, coord1=c(6,3,4,7,5,1,2), coord2=c(5,1,4,6,3,2), 
+    greedy = FALSE)
 dev.off()
 @
 
@@ -140,11 +141,11 @@ algorithm; these can be overridden to have evenly distributed nodes
 
 
 <<comparisonFlatVsFlat2,fig=FALSE, results=hide>>=
-flatVSflat(weights=table(flat1,flat2), evenly=TRUE, horiz=TRUE)
+flatVSflat(flat1, flat2, evenly=TRUE, horiz=TRUE, greedy = FALSE)
 @
 <<fig02, results=hide, echo=FALSE, fig=FALSE>>=
 bitmap("fig02.png",height=4,width=4,pointsize=10,res=300)
-flatVSflat(table(flat1,flat2),evenly=TRUE,horiz=TRUE)
+flatVSflat(flat1, flat2, evenly=TRUE, horiz=TRUE, greedy = FALSE)
 dev.off()
 @
 
@@ -184,6 +185,26 @@ dev.off()
 indicated in the plot, in brackets. After merging them to form the 
 superclusters, all the edges are drawn in the bi-graph (otherwise, it 
 would contain only parallel edges).
+
+\noindent Additionally, the mapping between superclusters can be 
+visualised through the function \Rfunction{flatVSflat} by setting the 
+argument \verb|greedy| to TRUE. 
+
+
+<<comparisonFlatVsFlatGreedy,fig=FALSE>>=
+flatVSflat( flat1, flat2, line.wd = 5, h.min = 0.3, greedy = TRUE)
+@
+<<fig04, results = hide, echo = FALSE, fig = FALSE>>=
+bitmap("fig04.png", height = 4, width = 4, pointsize = 10, res = 300)
+flatVSflat(flat1, flat2, line.wd = 5, h.min = 0.3, greedy = TRUE)
+dev.off()
+@
+
+\vspace*{5mm}
+\begin{center}
+\fbox{\includegraphics[width=0.45\textwidth]{fig04}}
+\end{center}
+
 
 
 \section{Comparison of flat and hierarchical clusterings}
@@ -232,14 +253,14 @@ comparison.flatVShier.1<-flatVShier(hierar, flat1, verbose=FALSE,
     pausing=FALSE, score.function="crossing", greedy.colours=1:4, 
     look.ahead=0)
 @
-<<fig04, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig04.png",height=6,width=8,pointsize=9,res=300)
+<<fig05, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig05.png",height=6,width=8,pointsize=9,res=300)
 flatVShier(hierar,flat1,pausing=FALSE,verbose=FALSE, 
     score.function="crossing",greedy.colours=1:4,look.ahead=0)
 dev.off()
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig04}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig05}}
 \end{center}
 
 A more descriptive version of previous figure can be achieved by setting the 
@@ -250,18 +271,19 @@ comparison.flatVShier.1<-flatVShier(hierar, flat1, verbose=FALSE,
     pausing=FALSE, score.function="crossing", greedy.colours=1:4, 
     look.ahead=0, expanded=TRUE)
 @
-<<fig05, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig05.png",height=14,width=8,pointsize=9,res=300)
+<<fig06, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig06.png",height=14,width=8,pointsize=9,res=300)
 flatVShier(hierar,flat1,pausing=FALSE,verbose=FALSE, 
     score.function="crossing",greedy.colours=1:4,look.ahead=0, 
     expanded=TRUE)
 dev.off()
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig05}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig06}}
 \end{center}
 
-
+Two coloured bars at both sides of the bi-graph show how genes are distributed
+across branches and flat clusters.
 
 \item \textit{Information theoretical-based scoring function, looking one step 
 ahead}: the optimal set of cutoffs yields 7 branches; the greedy algorithm 
@@ -271,14 +293,14 @@ comparison.flatVShier.2<-flatVShier(hierar, flat1, verbose=FALSE,
     pausing=FALSE, h.min=0.2, score.function="it", 
     greedy.colours=1:4, look.ahead=1)
 @
-<<fig06, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig06.png",height=6,width=8,pointsize=9,res=300)
+<<fig07, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig07.png",height=6,width=8,pointsize=9,res=300)
 flatVShier(hierar,flat1,pausing=FALSE,h.min=0.2,verbose=FALSE, 
     score.function="it",greedy.colours=1:4,look.ahead=1)
 dev.off()
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig06}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig07}}
 \end{center}
 
 \item \textit{Information theoretical-based scoring function, looking two steps 
@@ -289,14 +311,14 @@ comparison.flatVShier.3<-flatVShier(hierar, flat1, verbose=FALSE,
     pausing=FALSE, h.min=0.2, score.function="it", 
     greedy.colours=1:4, look.ahead=2)
 @
-<<fig07, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig07.png", height=6, width=8, pointsize=9, res=300)
+<<fig08, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig08.png", height=6, width=8, pointsize=9, res=300)
 flatVShier(hierar, flat1, pausing=FALSE, verbose=FALSE, score.function="it",
     greedy.colours=1:4, look.ahead=2,h.min=0.2)
 dev.off()
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig07}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig08}}
 \end{center}
 \end{itemize}
 
@@ -313,8 +335,8 @@ comparison.flatVShier.4<-flatVShier(hierar2, flat1, verbose=FALSE,
     pausing=FALSE, h.min=0.2, score.function="it", 
     greedy.colours=1:4, look.ahead=2, expanded=TRUE)
 @
-<<fig08, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig08.png", height=14, width=8, pointsize=9, res=300)
+<<fig09, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig09.png", height=14, width=8, pointsize=9, res=300)
 flatVShier(hierar2, flat1, pausing=FALSE, verbose=FALSE, 
     score.function="it", greedy.colours=1:4, look.ahead=2, 
     h.min=0.2, expanded=TRUE)
@@ -322,7 +344,7 @@ dev.off()
 Sys.sleep(10)
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig08}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig09}}
 \end{center}
 
 \noindent In the expanded version, it is also possible to draw the heatmap, 
@@ -334,8 +356,8 @@ comparison.flatVShier.5<-flatVShier(hierar2, flat1, verbose=FALSE,
     greedy.colours=1:4, look.ahead=2, expanded=TRUE,
     expression=exprs(colonCA))
 @
-<<fig09, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig09.png", height=14, width=8, pointsize=9, res=300)
+<<fig10, results=hide, echo=FALSE, fig=FALSE>>=
+bitmap("fig10.png", height=14, width=8, pointsize=9, res=300)
 flatVShier(hierar2, flat1, pausing=FALSE, verbose=FALSE, 
     score.function="it", greedy.colours=1:4, look.ahead=2, 
     h.min=0.2, expanded=TRUE, expression=exprs(colonCA))
@@ -343,11 +365,9 @@ dev.off()
 Sys.sleep(10)
 @
 \begin{center}
-\fbox{\includegraphics[width=0.65\textwidth]{fig09}}
+\fbox{\includegraphics[width=0.65\textwidth]{fig10}}
 \end{center}
 
 
-
-
-
 \end{document}
+
