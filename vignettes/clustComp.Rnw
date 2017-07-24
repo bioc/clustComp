@@ -173,12 +173,12 @@ one, as shown below:
 myMapping<-SCmapping(flat1, flat2)
 @
 <<fig03, results=hide, echo=FALSE, fig=FALSE>>=
-bitmap("fig03.png",height=4,width=4,pointsize=10,res=300)
+bitmap("fig03.png",height=4,width=7,pointsize=10,res=300)
 SCmapping(flat1,flat2)
 dev.off()
 @
 \begin{center}
-\fbox{\includegraphics[width=0.45\textwidth]{fig03}}
+\fbox{\includegraphics[width=0.75\textwidth]{fig03}}
 \end{center}
 
 \noindent  The initial clusters that form each supercluster are also 
@@ -191,7 +191,7 @@ visualised through the function \Rfunction{flatVSflat} by setting the
 argument \verb|greedy| to TRUE. 
 
 
-<<comparisonFlatVsFlatGreedy,fig=FALSE>>=
+<<comparisonFlatVsFlatGreedy,fig=FALSE,results=hide>>=
 flatVSflat( flat1, flat2, line.wd = 5, h.min = 0.3, greedy = TRUE)
 @
 <<fig04, results = hide, echo = FALSE, fig = FALSE>>=
